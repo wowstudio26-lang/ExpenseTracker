@@ -244,7 +244,7 @@ class MainActivityV3 : ComponentActivity() {
     private fun TransactionRow(t: FinanceTransaction) {
         Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(42.dp).background(Surface2, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-                Icon(if (t.type == TransactionType.EXPENSE) Icons.Default.ShoppingBag else if (t.type == TransactionType.CONTRIBUTION) Icons.Default.People else Icons.Default.AccountBalance, null, tint = if (t.type == TransactionType.EXPENSE) RedSoft else Green)
+                Icon(if (t.type == TransactionType.EXPENSE) Icons.Default.ShoppingBag else if (t.type == TransactionType.CONTRIBUTION) Icons.Default.People else Icons.Default.AccountBalance, null, tint = RedSoft, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(11.dp))
             Column(Modifier.weight(1f)) {
@@ -462,7 +462,7 @@ class MainActivityV3 : ComponentActivity() {
             confirmButton = { 
                 Button(onClick = { 
                     val value = amount.toDoubleOrNull() ?: 0.0
-                    if (value > 0) onSave(FinanceTransaction(initial?.id ?: 0L, type, owner, value, category, description, date))
+                    if (value > 0) onSave(FinanceTransaction(initial?.id ?: 0L, type, owner, value, category, description, date, System.currentTimeMillis(), false))
                 }, colors = ButtonDefaults.buttonColors(RedAccent)) { Text("SAVE") }
             },
             dismissButton = { TextButton(onClick = onDismiss) { Text("CANCEL", color = TextMuted) } }
@@ -536,7 +536,7 @@ class MainActivityV3 : ComponentActivity() {
     @Composable
     private fun TypeIcon(type: TransactionType) {
         Box(Modifier.size(40.dp).background(Surface2, RoundedCornerShape(11.dp)), contentAlignment = Alignment.Center) {
-            Icon(if (type == TransactionType.EXPENSE) Icons.Default.ShoppingBag else if (type == TransactionType.CONTRIBUTION) Icons.Default.People else Icons.Default.AccountBalance, null, tint = if (type == TransactionType.EXPENSE) RedSoft else Green)
+            Icon(if (type == TransactionType.EXPENSE) Icons.Default.ShoppingBag else if (type == TransactionType.CONTRIBUTION) Icons.Default.People else Icons.Default.AccountBalance, null, tint = RedSoft, modifier = Modifier.size(18.dp))
         }
     }
 
