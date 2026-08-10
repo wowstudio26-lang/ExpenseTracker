@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.appwidget.updateAll
+import androidx.lifecycle.lifecycleScope
 import com.wowstudio.expensetracker.data.Expense
 import com.wowstudio.expensetracker.data.ExpenseRepository
 import com.wowstudio.expensetracker.widget.ExpenseWidget
