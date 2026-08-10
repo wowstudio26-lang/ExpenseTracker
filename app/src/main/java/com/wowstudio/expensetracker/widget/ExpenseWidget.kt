@@ -1,6 +1,7 @@
 package com.wowstudio.expensetracker.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -35,11 +36,11 @@ private val Surface = ColorProvider(Color(0xFF151922), Color(0xFF151922))
 class ExpenseWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repo = (context.applicationContext as ExpenseTrackerApp).repository
-        provideContent { WidgetContent(repo.total(), repo.topCategories(3)) }
+        provideContent { WidgetContent(context, repo.total(), repo.topCategories(3)) }
     }
 
     @Composable
-    private fun WidgetContent(total: Double, top: List<Pair<String, Double>>) {
+    private fun WidgetContent(context: Context, total: Double, top: List<Pair<String, Double>>) {
         Column(
             modifier = GlanceModifier.fillMaxSize().background(Surface).padding(14.dp),
             verticalAlignment = Alignment.Vertical.Top,
@@ -56,7 +57,9 @@ class ExpenseWidget : GlanceAppWidget() {
             }
             Text(
                 "＋ ADD EXPENSE",
-                modifier = GlanceModifier.padding(top = 8.dp).clickable(actionStartActivity<MainActivity>()),
+                modifier = GlanceModifier.padding(top = 8.dp).clickable(
+                    actionStartActivity(Intent(context, MainActivity::class.java))
+                ),
                 style = TextStyle(color = White, fontSize = 12.sp)
             )
         }
