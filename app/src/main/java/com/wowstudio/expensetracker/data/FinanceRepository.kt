@@ -3,7 +3,6 @@ package com.wowstudio.expensetracker.data
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.UUID
 
 /** Local V2 store. Cloud sync is intentionally left for the final integration step. */
 class FinanceRepository(context: Context) {
