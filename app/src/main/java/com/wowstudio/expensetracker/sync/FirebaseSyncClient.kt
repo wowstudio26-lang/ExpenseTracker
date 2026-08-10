@@ -31,9 +31,7 @@ class FirebaseSyncClient(context: Context) {
     suspend fun push(json: String): Boolean = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext false
         val root = JSONObject(json)
-        root.keys().asSequence().all { id ->
-            authenticatedRequest("PUT", authenticatedEndpoint(id), root.getJSONObject(id).toString()) != null
-        }
+        root.keys().asSequence().all { id -> authenticatedRequest("PUT", authenticatedEndpoint(id), root.getJSONObject(id).toString()) != null }
     }
 
     private fun authenticatedRequest(method: String, url: String, body: String? = null): String? {
@@ -42,7 +40,9 @@ class FirebaseSyncClient(context: Context) {
         } catch (e: IllegalStateException) {
             if (e.message?.contains("HTTP 401") == true || e.message?.contains("HTTP 403") == true) {
                 prefs.edit().remove("id_token").apply()
-                request(method, if (url.contains("?auth=")) authenticatedEndpoint(url.substringAfterLast('/').substringBefore("?")) else url, body)
+                val freshToken = anonymousSignIn()
+                val freshUrl = url.substringBefore("?auth=") + "?auth=$freshToken"
+                request(method, freshUrl, body)
             } else throw e
         }
     }
