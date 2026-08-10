@@ -177,15 +177,127 @@ class MainActivityV2 : ComponentActivity() {
     }
 
     @Composable private fun TransactionDialog(repo: FinanceRepository, categories: List<String>, original: FinanceTransaction?, dismiss: () -> Unit, save: (FinanceTransaction) -> Unit) {
-        var type by remember(original) { mutableStateOf(original?.type ?: TransactionType.EXPENSE) }; var owner by remember(original) { mutableStateOf(original?.owner ?: "Household") }; var amount by remember(original) { mutableStateOf(original?.amount?.toString() ?: "") }; var category by remember(original) { mutableStateOf(original?.category ?: categories.firstOrNull() ?: "Other") }; var description by remember(original) { mutableStateOf(original?.description ?: "") }; var date by remember(original) { mutableLongStateOf(original?.date ?: System.currentTimeMillis()) }
-        AlertDialog(onDismissRequest = dismiss, containerColor = Panel2, title = { Text(if (original == null) "Add transaction" else "Edit transaction", color = TextMain) }, text = { Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf(TransactionType.EXPENSE to "Expense", TransactionType.INCOME to "Income", TransactionType.CONTRIBUTION to "Contribution").forEach { (t,label) -> FilterChip(type==t,{type=t},label={Text(label,fontSize=9.sp)}) } }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("Household","Mine","Wife").forEach { o -> FilterChip(owner==o,{owner=o},label={Text(o,fontSize=9.sp)}) } }
-            OutlinedTextField(amount,{amount=it.filter{c->c.isDigit()||c=='.'}},label={Text("Amount")},keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),singleLine=true,modifier=Modifier.fillMaxWidth())
-            Text("Category",color=TextMuted,fontSize=10.sp); Column { categories.chunked(3).forEach { row -> Row(horizontalArrangement=Arrangement.spacedBy(5.dp)) { row.forEach { c -> FilterChip(category==c,{category=c},label={Text(c,fontSize=8.sp)}) } } } }
-            OutlinedTextField(description,{description=it},label={Text("Description")},singleLine=true,modifier=Modifier.fillMaxWidth())
-            TextButton(onClick={pickDate(date){date=it}}){Text("Date: ${formatDate(date)}",color=AccentSoft)}
-        } }, confirmButton={TextButton(enabled=amount.toDoubleOrNull()?.let{it>0}==true,onClick={save(FinanceTransaction(original?.id?:0,type,owner,amount.toDouble(),category,description,date,System.currentTimeMillis(),false))}){Text("SAVE",color=AccentSoft)}},dismissButton={TextButton(dismiss){Text("CANCEL",color=TextMuted)}})
+        var type by remember(original) { mutableStateOf(original?.type ?: TransactionType.EXPENSE) }
+        var owner by remember(original) { mutableStateOf(original?.owner ?: defaultOwner(original?.type ?: TransactionType.EXPENSE)) }
+        var amount by remember(original) { mutableStateOf(original?.amount?.toString() ?: "") }
+        var category by remember(original) { mutableStateOf(original?.category ?: categories.firstOrNull() ?: "Other") }
+        var description by remember(original) { mutableStateOf(original?.description ?: "") }
+        var date by remember(original) { mutableLongStateOf(original?.date ?: System.currentTimeMillis()) }
+        var availableCategories by remember(categories) { mutableStateOf(categories) }
+        var showAddCategory by remember { mutableStateOf(false) }
+        var newCategory by remember { mutableStateOf("") }
+
+        fun selectType(newType: TransactionType) {
+            type = newType
+            owner = defaultOwner(newType)
+        }
+
+        AlertDialog(
+            onDismissRequest = dismiss,
+            containerColor = Panel2,
+            title = { Text(if (original == null) "Add transaction" else "Edit transaction", color = TextMain) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(TransactionType.EXPENSE to "Expense", TransactionType.INCOME to "Income", TransactionType.CONTRIBUTION to "Contribution").forEach { (t, label) ->
+                            FilterChip(type == t, { selectType(t) }, label = { Text(label, fontSize = 9.sp) })
+                        }
+                    }
+
+                    Text(
+                        when (type) {
+                            TransactionType.EXPENSE -> "Expense is tracked as household spending — not split between you and your wife."
+                            TransactionType.INCOME -> "Income is recorded under you."
+                            TransactionType.CONTRIBUTION -> "Contribution is recorded under your wife."
+                        },
+                        color = TextMuted,
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp
+                    )
+
+                    OutlinedTextField(
+                        amount,
+                        { amount = it.filter { c -> c.isDigit() || c == '.' } },
+                        label = { Text("Amount") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        description,
+                        { description = it },
+                        label = { Text("Description") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Category", color = TextMuted, fontSize = 10.sp, modifier = Modifier.weight(1f))
+                        TextButton(onClick = { newCategory = ""; showAddCategory = true }) { Text("+ Add category", color = AccentSoft, fontSize = 10.sp) }
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        availableCategories.chunked(3).forEach { row ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                                row.forEach { c ->
+                                    FilterChip(category == c, { category = c }, label = { Text(c, fontSize = 8.sp) })
+                                }
+                            }
+                        }
+                    }
+
+                    TextButton(onClick = { pickDate(date) { date = it } }) {
+                        Text("Date: ${formatDate(date)}", color = AccentSoft)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = amount.toDoubleOrNull()?.let { it > 0 } == true,
+                    onClick = {
+                        save(FinanceTransaction(original?.id ?: 0, type, owner, amount.toDouble(), category, description, date, System.currentTimeMillis(), false))
+                    }
+                ) { Text("SAVE", color = AccentSoft) }
+            },
+            dismissButton = { TextButton(dismiss) { Text("CANCEL", color = TextMuted) } }
+        )
+
+        if (showAddCategory) {
+            AlertDialog(
+                onDismissRequest = { showAddCategory = false },
+                containerColor = Panel2,
+                title = { Text("Add category", color = TextMain) },
+                text = {
+                    OutlinedTextField(
+                        newCategory,
+                        { newCategory = it },
+                        label = { Text("Category name") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = newCategory.trim().isNotEmpty(),
+                        onClick = {
+                            val clean = newCategory.trim()
+                            repo.addCategory(clean)
+                            availableCategories = (availableCategories + clean).distinct().sorted()
+                            category = clean
+                            showAddCategory = false
+                        }
+                    ) { Text("ADD", color = AccentSoft) }
+                },
+                dismissButton = { TextButton({ showAddCategory = false }) { Text("CANCEL", color = TextMuted) } }
+            )
+        }
+    }
+
+    private fun defaultOwner(type: TransactionType): String = when (type) {
+        TransactionType.EXPENSE -> "Household"
+        TransactionType.INCOME -> "Mine"
+        TransactionType.CONTRIBUTION -> "Wife"
     }
 
     @Composable private fun LoanDialog(original: Loan?, dismiss: () -> Unit, save: (Loan) -> Unit) {
