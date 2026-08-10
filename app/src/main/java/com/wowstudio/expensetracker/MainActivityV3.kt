@@ -196,7 +196,7 @@ class MainActivityV3 : ComponentActivity() {
                         Spacer(Modifier.height(5.dp))
                         Text(money(balance), color = TextMain, fontSize = 35.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(8.dp))
-                        Text("My income + wife contribution  expenses  monthly EMI", color = TextMuted, fontSize = 11.sp)
+                        Text("My income + wife contribution  expenses  monthly EMI", color = TextMuted, fontSize = 11.sp)
                     }
                 }
             }
@@ -244,15 +244,15 @@ class MainActivityV3 : ComponentActivity() {
     private fun TransactionRow(t: FinanceTransaction) {
         Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(42.dp).background(Surface2, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-                Icon(if (t.type == TransactionType.EXPENSE) Icons.Default.ShoppingBag else if (t.type == TransactionType.CONTRIBUTION) Icons.Default.People else Icons.Default.AccountBalance, null[...]
+                Icon(if (t.type == TransactionType.EXPENSE) Icons.Default.ShoppingBag else if (t.type == TransactionType.CONTRIBUTION) Icons.Default.People else Icons.Default.AccountBalance, null, tint = if (t.type == TransactionType.EXPENSE) RedSoft else Green)
             }
             Spacer(Modifier.width(11.dp))
             Column(Modifier.weight(1f)) {
                 Text(t.description.ifBlank { t.category }, color = TextMain, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                Text("${t.category}  ${t.owner}  ${formatDate(t.date)}", color = TextMuted, fontSize = 10.sp, maxLines = 1)
+                Text("${t.category}  ${t.owner}  ${formatDate(t.date)}", color = TextMuted, fontSize = 10.sp, maxLines = 1)
             }
             Text(
-                (if (t.type == TransactionType.EXPENSE) "" else "+") + money(t.amount),
+                (if (t.type == TransactionType.EXPENSE) "" else "+") + money(t.amount),
                 color = if (t.type == TransactionType.EXPENSE) RedSoft else Green,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
@@ -282,11 +282,11 @@ class MainActivityV3 : ComponentActivity() {
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
                             Text(t.description.ifBlank { t.category }, color = TextMain, fontWeight = FontWeight.Bold)
-                            Text("${t.category}  ${t.owner}", color = TextMuted, fontSize = 10.sp)
+                            Text("${t.category}  ${t.owner}", color = TextMuted, fontSize = 10.sp)
                             Text(formatDate(t.date), color = TextMuted, fontSize = 10.sp)
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text((if (t.type == TransactionType.EXPENSE) "" else "+") + money(t.amount), color = if (t.type == TransactionType.EXPENSE) RedSoft else Green, fontWeight = FontWei[...]
+                            Text((if (t.type == TransactionType.EXPENSE) "" else "+") + money(t.amount), color = if (t.type == TransactionType.EXPENSE) RedSoft else Green, fontWeight = FontWeight.Bold)
                             Row {
                                 IconButton({ edit(t) }, Modifier.size(32.dp)) { Icon(Icons.Default.Edit, "Edit", tint = RedSoft, modifier = Modifier.size(17.dp)) }
                                 IconButton({ delete(t.id) }, Modifier.size(32.dp)) { Icon(Icons.Default.DeleteOutline, "Delete", tint = RedSoft, modifier = Modifier.size(17.dp)) }
@@ -335,19 +335,19 @@ class MainActivityV3 : ComponentActivity() {
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
                         Text(loan.lender, color = TextMain, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                        Text("${loan.type.name.replace('_', ' ')}  ${loan.product.ifBlank { "General" }}", color = TextMuted, fontSize = 10.sp)
+                        Text("${loan.type.name.replace('_', ' ')}  ${loan.product.ifBlank { "General" }}", color = TextMuted, fontSize = 10.sp)
                     }
                     Text(money(loan.remainingAmount), color = RedSoft, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(12.dp))
                 if (loan.type == LoanType.PAY_LATER) {
-                    Text("Pay later  due ${formatDate(loan.nextDueDate)}", color = TextMuted, fontSize = 11.sp)
+                    Text("Pay later  due ${formatDate(loan.nextDueDate)}", color = TextMuted, fontSize = 11.sp)
                 } else {
                     val progress = if (loan.tenureMonths > 0) loan.paidMonths.toFloat() / loan.tenureMonths else 0f
                     LinearProgressIndicator(progress = { progress.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth(), color = RedAccent, trackColor = Stroke)
                     Spacer(Modifier.height(7.dp))
-                    Text("${loan.paidMonths}/${loan.tenureMonths} EMIs paid  ${loan.remainingMonths} remaining", color = TextMuted, fontSize = 10.sp)
-                    Text("Monthly EMI ${money(loan.monthlyPayment)}  Remaining ${money(loan.remainingAmount)}", color = TextMuted, fontSize = 10.sp)
+                    Text("${loan.paidMonths}/${loan.tenureMonths} EMIs paid  ${loan.remainingMonths} remaining", color = TextMuted, fontSize = 10.sp)
+                    Text("Monthly EMI ${money(loan.monthlyPayment)}  Remaining ${money(loan.remainingAmount)}", color = TextMuted, fontSize = 10.sp)
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton({ edit(loan) }) { Text("EDIT", color = RedSoft) }
@@ -369,22 +369,39 @@ class MainActivityV3 : ComponentActivity() {
         }
         LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 110.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item { Text("AI Advisor", color = TextMain, fontSize = 28.sp, fontWeight = FontWeight.Bold); Text("Finance-coach style insights", color = TextMuted, fontSize = 11.sp) }
-            item { Card(colors = CardDefaults.cardColors(Surface2), shape = RoundedCornerShape(22.dp)) { Column(Modifier.padding(18.dp)) { Text("MONTHLY SNAPSHOT", color = TextMuted, fontSize = 1[...]
+            item { 
+                Card(colors = CardDefaults.cardColors(Surface2), shape = RoundedCornerShape(22.dp)) { 
+                    Column(Modifier.padding(18.dp)) { 
+                        Text("MONTHLY SNAPSHOT", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(8.dp))
+                        Text(message, color = TextMain, fontSize = 13.sp)
+                    }
+                }
+            }
             item { AdvisorLine("1", if (emi > 0) "Track every EMI and its remaining months." else "Add your loans so monthly debt commitments can be calculated.") }
-            item { AdvisorLine("2", if (balance > 0) "Keep part of the available balance as an emergency buffer." else "Your current calculated balance is low; avoid unnecessary new commitments.[...]
+            item { AdvisorLine("2", if (balance > 0) "Keep part of the available balance as an emergency buffer." else "Your current calculated balance is low; avoid unnecessary new commitments.") }
             item { AdvisorLine("3", "Wife contributions stay separate from your personal income in the dashboard.") }
         }
     }
 
-    @Composable private fun AdvisorLine(number: String, text: String) {
-        Card(colors = CardDefaults.cardColors(Surface), shape = RoundedCornerShape(16.dp)) { Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(28.dp[...]
+    @Composable
+    private fun AdvisorLine(number: String, text: String) {
+        Card(colors = CardDefaults.cardColors(Surface), shape = RoundedCornerShape(16.dp)) { 
+            Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) { 
+                Box(Modifier.size(28.dp).background(RedAccent, CircleShape), contentAlignment = Alignment.Center) { 
+                    Text(number, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
+                Spacer(Modifier.width(12.dp))
+                Text(text, color = TextMain, fontSize = 12.sp, modifier = Modifier.weight(1f))
+            }
+        }
     }
 
     @Composable
     private fun SettingsScreen(pad: PaddingValues, categories: List<String>, add: (String) -> Unit, delete: (String) -> Unit) {
         var newCategory by remember { mutableStateOf("") }
         LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 110.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            item { Text("Settings", color = TextMain, fontSize = 28.sp, fontWeight = FontWeight.Bold); Text("Manage your categories without leaving the app", color = TextMuted, fontSize = 11.sp) [...]
+            item { Text("Settings", color = TextMain, fontSize = 28.sp, fontWeight = FontWeight.Bold); Text("Manage your categories without leaving the app", color = TextMuted, fontSize = 11.sp) }
             item {
                 Card(colors = CardDefaults.cardColors(Surface), shape = RoundedCornerShape(18.dp)) {
                     Column(Modifier.padding(16.dp)) {
@@ -423,9 +440,17 @@ class MainActivityV3 : ComponentActivity() {
             title = { Text(if (initial == null) "Add transaction" else "Edit transaction", color = TextMain) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf(TransactionType.EXPENSE, TransactionType.INCOME, TransactionType.CONTRIBUTION).forEach { t -> FilterChip(type [...]
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("Mine", "Wife", "Household").forEach { o -> FilterChip(owner == o, { owner = o }, label = { Text(o, fontSize =[...]
-                    OutlinedTextField(amount, { amount = it }, label = { Text("Amount") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifie[...]
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { 
+                        listOf(TransactionType.EXPENSE, TransactionType.INCOME, TransactionType.CONTRIBUTION).forEach { t -> 
+                            FilterChip(type == t, { type = t }, label = { Text(t.name.replace('_', ' '), fontSize = 9.sp) })
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { 
+                        listOf("Mine", "Wife", "Household").forEach { o -> 
+                            FilterChip(owner == o, { owner = o }, label = { Text(o, fontSize = 9.sp) })
+                        }
+                    }
+                    OutlinedTextField(amount, { amount = it }, label = { Text("Amount") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(description, { description = it }, label = { Text("Description") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     Text("Category", color = TextMuted, fontSize = 11.sp)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
@@ -434,7 +459,12 @@ class MainActivityV3 : ComponentActivity() {
                     OutlinedButton(onClick = { showDatePicker(date) { date = it } }, modifier = Modifier.fillMaxWidth()) { Text("Date: ${formatDate(date)}") }
                 }
             },
-            confirmButton = { Button(onClick = { val value = amount.toDoubleOrNull() ?: 0.0; if (value > 0) onSave(FinanceTransaction(initial?.id ?: 0L, type, owner, value, category, description,[...]
+            confirmButton = { 
+                Button(onClick = { 
+                    val value = amount.toDoubleOrNull() ?: 0.0
+                    if (value > 0) onSave(FinanceTransaction(initial?.id ?: 0L, type, owner, value, category, description, date))
+                }, colors = ButtonDefaults.buttonColors(RedAccent)) { Text("SAVE") }
+            },
             dismissButton = { TextButton(onClick = onDismiss) { Text("CANCEL", color = TextMuted) } }
         )
     }
@@ -464,16 +494,20 @@ class MainActivityV3 : ComponentActivity() {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(lender, { lender = it }, label = { Text("Lender / loan name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { LoanType.values().forEach { t -> FilterChip(type == t, { type = t }, label = { Text(t.name.replace('_', ' '), fontSiz[...]
-                    OutlinedTextField(product, { product = it }, label = { Text("Product / purpose") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(original, { original = it }, label = { Text("Original amount") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)[...]
-                    if (type != LoanType.PAY_LATER) {
-                        OutlinedTextField(monthly, { monthly = it }, label = { Text("Monthly EMI") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)[...]
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(tenure, { tenure = it }, label = { Text("Tenure months") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),[...]
-                            OutlinedTextField(paid, { paid = it }, label = { Text("Paid EMIs") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifie[...]
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { 
+                        LoanType.values().forEach { t -> 
+                            FilterChip(type == t, { type = t }, label = { Text(t.name.replace('_', ' '), fontSize = 9.sp) })
                         }
-                        Text("$remainingMonths EMI month(s) remaining  ${money(remaining)} remaining", color = RedSoft, fontSize = 11.sp)
+                    }
+                    OutlinedTextField(product, { product = it }, label = { Text("Product / purpose") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(original, { original = it }, label = { Text("Original amount") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
+                    if (type != LoanType.PAY_LATER) {
+                        OutlinedTextField(monthly, { monthly = it }, label = { Text("Monthly EMI") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(tenure, { tenure = it }, label = { Text("Tenure months") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                            OutlinedTextField(paid, { paid = it }, label = { Text("Paid EMIs") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                        }
+                        Text("$remainingMonths EMI month(s) remaining  ${money(remaining)} remaining", color = RedSoft, fontSize = 11.sp)
                     } else {
                         Text("Pay Later has no EMI schedule. The full outstanding amount stays visible until you edit or clear it.", color = TextMuted, fontSize = 11.sp)
                     }
@@ -486,7 +520,7 @@ class MainActivityV3 : ComponentActivity() {
             confirmButton = {
                 Button(onClick = {
                     if (lender.isNotBlank() && total > 0) {
-                        onSave(Loan(initial?.id ?: 0L, lender, type, product, total, if (type == LoanType.PAY_LATER) 0.0 else emi, if (type == LoanType.PAY_LATER) 0 else months, if (type == LoanT[...]
+                        onSave(Loan(initial?.id ?: 0L, lender, type, product, total, if (type == LoanType.PAY_LATER) 0.0 else emi, if (type == LoanType.PAY_LATER) 0 else months, paidCount, start, due))
                     }
                 }, colors = ButtonDefaults.buttonColors(RedAccent)) { Text("SAVE LOAN") }
             },
@@ -496,17 +530,23 @@ class MainActivityV3 : ComponentActivity() {
 
     private fun showDatePicker(current: Long, onDate: (Long) -> Unit) {
         val cal = Calendar.getInstance().apply { timeInMillis = current }
-        DatePickerDialog(this, { _, year, month, day -> onDate(Calendar.getInstance().apply { set(year, month, day, 12, 0, 0) }.timeInMillis) }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), c[...]
+        DatePickerDialog(this, { _, year, month, day -> onDate(Calendar.getInstance().apply { set(year, month, day, 12, 0, 0) }.timeInMillis) }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
     }
 
-    @Composable private fun TypeIcon(type: TransactionType) {
+    @Composable
+    private fun TypeIcon(type: TransactionType) {
         Box(Modifier.size(40.dp).background(Surface2, RoundedCornerShape(11.dp)), contentAlignment = Alignment.Center) {
-            Icon(if (type == TransactionType.EXPENSE) Icons.Default.ShoppingBag else if (type == TransactionType.CONTRIBUTION) Icons.Default.People else Icons.Default.AccountBalance, null, tint =[...]
+            Icon(if (type == TransactionType.EXPENSE) Icons.Default.ShoppingBag else if (type == TransactionType.CONTRIBUTION) Icons.Default.People else Icons.Default.AccountBalance, null, tint = if (type == TransactionType.EXPENSE) RedSoft else Green)
         }
     }
 
-    @Composable private fun EmptyState(text: String) {
-        Card(colors = CardDefaults.cardColors(Surface), shape = RoundedCornerShape(18.dp)) { Box(Modifier.fillMaxWidth().padding(28.dp), contentAlignment = Alignment.Center) { Text(text, color = [...]
+    @Composable
+    private fun EmptyState(text: String) {
+        Card(colors = CardDefaults.cardColors(Surface), shape = RoundedCornerShape(18.dp)) { 
+            Box(Modifier.fillMaxWidth().padding(28.dp), contentAlignment = Alignment.Center) { 
+                Text(text, color = TextMuted, fontSize = 14.sp)
+            }
+        }
     }
 
     private fun money(value: Double): String = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply { maximumFractionDigits = 2; minimumFractionDigits = 2 }.format(value)
