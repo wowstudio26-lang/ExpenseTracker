@@ -14,33 +14,70 @@ class ExpenseRepository(context: Context) {
         val array = JSONArray(raw)
         return List(array.length()) { i ->
             val o = array.getJSONObject(i)
-            Expense(o.getLong("id"), o.getDouble("amount"), o.getString("category"), o.optString("description"), o.getLong("date"))
+            Expense(
+                id = o.getLong("id"),
+                amount = o.getDouble("amount"),
+                category = o.getString("category"),
+                description = o.optString("description"),
+                date = o.getLong("date")
+            )
         }.sortedByDescending { it.date }
     }
 
-    fun add(amount: Double, category: String, description: String) {
+    fun getExpensesForMonth(year: Int, month: Int): List<Expense> =
+        getExpenses().filter { isInMonth(it.date, year, month) }
+
+    fun add(amount: Double, category: String, description: String, date: Long = System.currentTimeMillis()): Long {
+        val id = System.currentTimeMillis()
         val all = getExpenses().toMutableList()
-        all += Expense(System.currentTimeMillis(), amount, category, description, System.currentTimeMillis())
+        all += Expense(id, amount, category.trim().uppercase(), description.trim(), date)
         save(all)
+        return id
+    }
+
+    fun update(id: Long, amount: Double, category: String, description: String, date: Long) {
+        val updated = getExpenses().map {
+            if (it.id == id) it.copy(
+                amount = amount,
+                category = category.trim().uppercase(),
+                description = description.trim(),
+                date = date
+            ) else it
+        }
+        save(updated)
     }
 
     fun delete(id: Long) = save(getExpenses().filterNot { it.id == id })
 
     fun clear() = save(emptyList())
 
-    fun total(): Double = getExpenses().sumOf { it.amount }
+    fun total(year: Int? = null, month: Int? = null): Double =
+        if (year == null || month == null) getExpenses().sumOf { it.amount }
+        else getExpensesForMonth(year, month).sumOf { it.amount }
 
-    fun topCategories(limit: Int = 4): List<Pair<String, Double>> = getExpenses()
-        .groupBy { it.category }
-        .mapValues { (_, v) -> v.sumOf { it.amount } }
-        .toList().sortedByDescending { it.second }.take(limit)
+    fun topCategories(limit: Int = 4, year: Int? = null, month: Int? = null): List<Pair<String, Double>> {
+        val source = if (year == null || month == null) getExpenses() else getExpensesForMonth(year, month)
+        return source.groupBy { it.category }
+            .mapValues { (_, values) -> values.sumOf { it.amount } }
+            .toList()
+            .sortedByDescending { it.second }
+            .take(limit)
+    }
+
+    private fun isInMonth(timestamp: Long, year: Int, month: Int): Boolean {
+        val c = Calendar.getInstance().apply { timeInMillis = timestamp }
+        return c.get(Calendar.YEAR) == year && c.get(Calendar.MONTH) == month
+    }
 
     private fun save(items: List<Expense>) {
         val array = JSONArray()
         items.forEach { e ->
             array.put(JSONObject().apply {
-                put("id", e.id); put("amount", e.amount); put("category", e.category)
-                put("description", e.description); put("date", e.date)
+                put("id", e.id)
+                put("amount", e.amount)
+                put("category", e.category)
+                put("description", e.description)
+                put("date", e.date)
             })
         }
         prefs.edit().putString(key, array.toString()).apply()
