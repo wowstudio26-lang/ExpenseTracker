@@ -4,16 +4,18 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.defaultWeight
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.Text
@@ -29,33 +31,28 @@ import java.util.Locale
 class ExpenseWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repo = (context.applicationContext as ExpenseTrackerApp).repository
-        val total = repo.total()
-        val top = repo.topCategories(3)
-        provideContent {
-            WidgetContent(total, top)
-        }
+        provideContent { WidgetContent(repo.total(), repo.topCategories(3)) }
     }
 
     @Composable
     private fun WidgetContent(total: Double, top: List<Pair<String, Double>>) {
-        val rupee = NumberFormat.getCurrencyInstance(Locale("en", "IN")).format(total)
         Column(
             modifier = GlanceModifier.fillMaxSize().background(ColorProvider(0xFF151922)).padding(14.dp),
             verticalAlignment = Alignment.Vertical.Top,
             horizontalAlignment = Alignment.Horizontal.Start
         ) {
             Text("MONTHLY EXPENSES", style = TextStyle(color = ColorProvider(0xFFFFFFFF), fontSize = 13.sp))
-            Text(rupee, style = TextStyle(color = ColorProvider(0xFFFFFFFF), fontSize = 25.sp))
+            Text(money(total), style = TextStyle(color = ColorProvider(0xFFFFFFFF), fontSize = 25.sp))
             Spacer(GlanceModifier.width(1.dp).padding(3.dp))
             top.forEach { (cat, value) ->
-                Row(modifier = GlanceModifier.fillMaxSize().padding(vertical = 2.dp)) {
-                    Text(cat, style = TextStyle(color = ColorProvider(0xFFB7BFCC), fontSize = 12.sp))
-                    Spacer(GlanceModifier.width(8.dp))
-                    Text(NumberFormat.getCurrencyInstance(Locale("en", "IN")).format(value), style = TextStyle(color = ColorProvider(0xFFFFFFFF), fontSize = 12.sp))
+                Row(modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2.dp)) {
+                    Text(cat, modifier = GlanceModifier.defaultWeight(), style = TextStyle(color = ColorProvider(0xFFB7BFCC), fontSize = 12.sp))
+                    Text(money(value), style = TextStyle(color = ColorProvider(0xFFFFFFFF), fontSize = 12.sp))
                 }
             }
-            Spacer(GlanceModifier.width(1.dp).padding(3.dp))
-            Text("＋ ADD EXPENSE", modifier = GlanceModifier.padding(top = 6.dp).clickable(actionStartActivity<MainActivity>()), style = TextStyle(color = ColorProvider(0xFFFFFFFF), fontSize = 12.sp))
+            Text("＋ ADD EXPENSE", modifier = GlanceModifier.padding(top = 8.dp).clickable(actionStartActivity<MainActivity>()), style = TextStyle(color = ColorProvider(0xFFFFFFFF), fontSize = 12.sp))
         }
     }
+
+    private fun money(value: Double) = NumberFormat.getCurrencyInstance(Locale("en", "IN")).format(value)
 }
