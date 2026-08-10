@@ -39,3 +39,11 @@ jobs:
 
       - name: Run Android lint
         run: gradle lint --stacktrace
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: expense-tracker-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
