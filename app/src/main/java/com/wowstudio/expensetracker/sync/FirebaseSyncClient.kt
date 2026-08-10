@@ -24,29 +24,33 @@ class FirebaseSyncClient(context: Context) {
 
     suspend fun pull(): String? = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext null
-        authenticatedRequest("GET")
+        authenticatedRequest("GET", authenticatedEndpoint())
     }
 
-    // PATCH updates only the supplied expense children. Unlike PUT, it cannot wipe a concurrent device's new expense.
+    // Upload each expense as its own child. This avoids replacing another phone's concurrent changes.
     suspend fun push(json: String): Boolean = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext false
-        authenticatedRequest("PATCH", json) != null
+        val root = JSONObject(json)
+        root.keys().asSequence().all { id ->
+            authenticatedRequest("PUT", authenticatedEndpoint(id), root.getJSONObject(id).toString()) != null
+        }
     }
 
-    private fun authenticatedRequest(method: String, body: String? = null): String? {
+    private fun authenticatedRequest(method: String, url: String, body: String? = null): String? {
         return try {
-            request(method, authenticatedEndpoint(), body)
+            request(method, url, body)
         } catch (e: IllegalStateException) {
             if (e.message?.contains("HTTP 401") == true || e.message?.contains("HTTP 403") == true) {
                 prefs.edit().remove("id_token").apply()
-                request(method, authenticatedEndpoint(), body)
+                request(method, if (url.contains("?auth=")) authenticatedEndpoint(url.substringAfterLast('/').substringBefore("?")) else url, body)
             } else throw e
         }
     }
 
-    private fun authenticatedEndpoint(): String {
+    private fun authenticatedEndpoint(id: String? = null): String {
         val token = prefs.getString("id_token", null) ?: anonymousSignIn()
-        return "${databaseUrl()}/expenseRooms/${room()}/expenses.json?auth=$token"
+        val suffix = if (id == null) "expenses.json" else "expenses/$id.json"
+        return "${databaseUrl()}/expenseRooms/${room()}/$suffix?auth=$token"
     }
 
     private fun anonymousSignIn(): String {
@@ -73,9 +77,7 @@ class FirebaseSyncClient(context: Context) {
             val stream = if (code in 200..299) connection.inputStream else connection.errorStream
             val text = stream?.let { BufferedReader(InputStreamReader(it)).use { r -> r.readText() } }
             if (code in 200..299) text else throw IllegalStateException("Sync server returned HTTP $code")
-        } finally {
-            connection.disconnect()
-        }
+        } finally { connection.disconnect() }
     }
 
     companion object {
@@ -84,12 +86,7 @@ class FirebaseSyncClient(context: Context) {
             return try {
                 val root = JSONObject(raw)
                 val array = JSONArray()
-                root.keys().forEach { key ->
-                    root.optJSONObject(key)?.let { obj ->
-                        obj.put("id", key.toLongOrNull() ?: obj.optLong("id"))
-                        array.put(obj)
-                    }
-                }
+                root.keys().forEach { key -> root.optJSONObject(key)?.let { obj -> obj.put("id", key.toLongOrNull() ?: obj.optLong("id")); array.put(obj) } }
                 array
             } catch (_: Exception) { JSONArray() }
         }
