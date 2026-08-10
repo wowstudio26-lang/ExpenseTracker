@@ -119,6 +119,18 @@ class MainActivityV2 : ComponentActivity() {
     }
     @Composable private fun StatCard(label: String, value: String, color: Color, modifier: Modifier) { Card(modifier, colors = CardDefaults.cardColors(Panel), shape = RoundedCornerShape(18.dp)) { Column(Modifier.padding(14.dp)) { Text(label, color = TextMuted, fontSize = 10.sp); Spacer(Modifier.height(5.dp)); Text(value, color = color, fontSize = 17.sp, fontWeight = FontWeight.Bold) } } }
 
+    @Composable private fun TransactionRow(t: FinanceTransaction) {
+        Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+            TypeIcon(t.type)
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(t.description.ifBlank { t.category }, color = TextMain, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text("${t.category} • ${t.owner} • ${formatDate(t.date)}", color = TextMuted, fontSize = 10.sp, maxLines = 1)
+            }
+            Text(money(t.amount), color = if (t.type == TransactionType.EXPENSE) Red else if (t.type == TransactionType.CONTRIBUTION) AccentSoft else Green, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+
     @Composable private fun History(pad: PaddingValues, list: List<FinanceTransaction>, edit: (FinanceTransaction) -> Unit, delete: (Long) -> Unit) {
         var filter by remember { mutableStateOf("All") }
         val shown = list.filter { filter == "All" || it.type.name.equals(filter, true) }
@@ -187,7 +199,16 @@ class MainActivityV2 : ComponentActivity() {
         }},confirmButton={TextButton(enabled=lender.isNotBlank()&&originalAmount.toDoubleOrNull()?.let{it>0}==true,onClick={save(Loan(original?.id?:0,lender,type,product,originalAmount.toDouble(),monthly.toDoubleOrNull()?:0.0,tenure.toIntOrNull()?:0,paid.toIntOrNull()?:0,start,due))}){Text("SAVE LOAN",color=AccentSoft)}},dismissButton={TextButton(dismiss){Text("CANCEL",color=TextMuted)}})
     }
 
-    private fun pickDate(current: Long, onPicked: (Long) -> Unit) { val c=Calendar.getInstance().apply{timeInMillis=current}; DatePickerDialog(this,c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DAY_OF_MONTH)){_,y,m,d->onPicked(Calendar.getInstance().apply{set(y,m,d,12,0,0);set(Calendar.MILLISECOND,0)}.timeInMillis)}.show() }
+    private fun pickDate(current: Long, onPicked: (Long) -> Unit) {
+        val c = Calendar.getInstance().apply { timeInMillis = current }
+        DatePickerDialog(this, { _, y, m, d ->
+            onPicked(Calendar.getInstance().apply {
+                set(y, m, d, 12, 0, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis)
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
     @Composable private fun TypeIcon(type: TransactionType) { Box(Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)).background(Panel2),contentAlignment=Alignment.Center){Icon(when(type){TransactionType.EXPENSE->Icons.Default.ShoppingCart;TransactionType.INCOME->Icons.Default.ArrowDownward;TransactionType.CONTRIBUTION->Icons.Default.Handshake},null,tint=AccentSoft)} }
     @Composable private fun Empty(text:String){Box(Modifier.fillMaxWidth().padding(45.dp),contentAlignment=Alignment.Center){Text(text,color=TextMuted,fontSize=12.sp,textAlign=TextAlign.Center)}}
     private fun money(v:Double)=NumberFormat.getCurrencyInstance(Locale("en","IN")).format(v)
