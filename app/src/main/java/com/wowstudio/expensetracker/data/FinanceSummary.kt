@@ -30,7 +30,11 @@ fun calculateFinanceSummary(
         .filter { it.type == TransactionType.EXPENSE }
         .sumOf { it.amount }
 
-    val outstandingDebt = loans.sumOf { it.remainingAmount }
+    // Pay Later is tracked separately from loan/EMI debt and must not inflate
+    // the overall loan-debt figure or the recurring EMI commitment.
+    val outstandingDebt = loans
+        .filter { it.type != LoanType.PAY_LATER }
+        .sumOf { it.remainingAmount }
 
     val monthlyEmi = loans
         .filter { it.type != LoanType.PAY_LATER && it.remainingMonths > 0 }
