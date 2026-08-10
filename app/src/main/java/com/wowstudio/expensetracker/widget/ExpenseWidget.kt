@@ -3,6 +3,8 @@ package com.wowstudio.expensetracker.widget
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.action.clickable
@@ -21,8 +23,6 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.dp
-import androidx.glance.unit.sp
 import com.wowstudio.expensetracker.ExpenseTrackerApp
 import com.wowstudio.expensetracker.MainActivity
 import java.text.NumberFormat
@@ -54,7 +54,11 @@ class ExpenseWidget : GlanceAppWidget() {
                     Text(money(value), style = TextStyle(color = White, fontSize = 12.sp))
                 }
             }
-            Text("＋ ADD EXPENSE", modifier = GlanceModifier.padding(top = 8.dp).clickable(actionStartActivity<MainActivity>()), style = TextStyle(color = White, fontSize = 12.sp))
+            Text(
+                "＋ ADD EXPENSE",
+                modifier = GlanceModifier.padding(top = 8.dp).clickable(actionStartActivity<MainActivity>()),
+                style = TextStyle(color = White, fontSize = 12.sp)
+            )
         }
     }
 
