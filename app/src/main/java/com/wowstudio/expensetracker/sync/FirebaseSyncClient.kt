@@ -27,9 +27,10 @@ class FirebaseSyncClient(context: Context) {
         authenticatedRequest("GET")
     }
 
+    // PATCH updates only the supplied expense children. Unlike PUT, it cannot wipe a concurrent device's new expense.
     suspend fun push(json: String): Boolean = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext false
-        authenticatedRequest("PUT", json) != null
+        authenticatedRequest("PATCH", json) != null
     }
 
     private fun authenticatedRequest(method: String, body: String? = null): String? {
