@@ -27,6 +27,8 @@ import androidx.glance.text.TextStyle
 import com.wowstudio.expensetracker.ExpenseTrackerApp
 import com.wowstudio.expensetracker.MainActivity
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 private val White = ColorProvider(Color.White, Color.White)
@@ -36,18 +38,26 @@ private val Surface = ColorProvider(Color(0xFF151922), Color(0xFF151922))
 class ExpenseWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repo = (context.applicationContext as ExpenseTrackerApp).repository
-        provideContent { WidgetContent(context, repo.total(), repo.topCategories(3)) }
+        val month = Calendar.getInstance()
+        val expenses = repo.getExpensesForMonth(month.get(Calendar.YEAR), month.get(Calendar.MONTH))
+        val total = expenses.sumOf { it.amount }
+        val top = expenses.groupBy { it.category }
+            .mapValues { (_, values) -> values.sumOf { it.amount } }
+            .toList().sortedByDescending { it.second }.take(3)
+        provideContent { WidgetContent(context, month, total, expenses.size, top) }
     }
 
     @Composable
-    private fun WidgetContent(context: Context, total: Double, top: List<Pair<String, Double>>) {
+    private fun WidgetContent(context: Context, month: Calendar, total: Double, count: Int, top: List<Pair<String, Double>>) {
         Column(
             modifier = GlanceModifier.fillMaxSize().background(Surface).padding(14.dp),
             verticalAlignment = Alignment.Vertical.Top,
             horizontalAlignment = Alignment.Horizontal.Start
         ) {
             Text("MONTHLY EXPENSES", style = TextStyle(color = White, fontSize = 13.sp))
+            Text(SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(month.time), style = TextStyle(color = Muted, fontSize = 11.sp))
             Text(money(total), style = TextStyle(color = White, fontSize = 25.sp))
+            Text("$count transactions", style = TextStyle(color = Muted, fontSize = 11.sp))
             Spacer(GlanceModifier.width(1.dp).padding(3.dp))
             top.forEach { (cat, value) ->
                 Row(modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2.dp)) {
@@ -57,9 +67,7 @@ class ExpenseWidget : GlanceAppWidget() {
             }
             Text(
                 "＋ ADD EXPENSE",
-                modifier = GlanceModifier.padding(top = 8.dp).clickable(
-                    actionStartActivity(Intent(context, MainActivity::class.java))
-                ),
+                modifier = GlanceModifier.padding(top = 8.dp).clickable(actionStartActivity(Intent(context, MainActivity::class.java))),
                 style = TextStyle(color = White, fontSize = 12.sp)
             )
         }
