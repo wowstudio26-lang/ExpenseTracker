@@ -5,5 +5,7 @@ data class Expense(
     val amount: Double,
     val category: String,
     val description: String,
-    val date: Long
+    val date: Long,
+    val updatedAt: Long = System.currentTimeMillis(),
+    val deleted: Boolean = false
 )
