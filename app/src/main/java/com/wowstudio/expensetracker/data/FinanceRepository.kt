@@ -91,7 +91,20 @@ class FinanceRepository(context: Context) {
     private fun newId(): Long { var id = System.currentTimeMillis(); val used = (readTransactions().map { it.id } + readLoans().map { it.id }).toHashSet(); while (used.contains(id)) id++; return id }
 }
 
-data class FinanceTransaction(val id: Long, val type: TransactionType, val owner: String, val amount: Double, val category: String, val description: String, val date: Long, val updatedAt: Long, val deleted: Boolean)
+data class FinanceTransaction(val id: Long, val type: TransactionType, val owner: String, val amount: Double, val category: String, val description: String, val date: Long, val updatedAt: Long, val deleted: Boolean) {
+    /** Compatibility constructor for the reference UI, which historically used owner=1 for the local user. */
+    constructor(id: Long, type: TransactionType, owner: Int, amount: Double, category: String, description: String, date: Long) : this(
+        id,
+        type,
+        if (owner == 1) "Mine" else owner.toString(),
+        amount,
+        category,
+        description,
+        date,
+        System.currentTimeMillis(),
+        false
+    )
+}
 enum class TransactionType { INCOME, CONTRIBUTION, EXPENSE }
 enum class LoanType { EMI, LOAN, PAY_LATER }
 data class Loan(val id: Long = 0L, val lender: String, val type: LoanType, val product: String, val originalAmount: Double, val monthlyPayment: Double, val tenureMonths: Int, val paidMonths: Int, val startDate: Long, val nextDueDate: Long, val updatedAt: Long = System.currentTimeMillis(), val deleted: Boolean = false) {
