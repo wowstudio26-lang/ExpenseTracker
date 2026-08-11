@@ -94,18 +94,37 @@ class MainActivityReference : ComponentActivity() {
             onClick = click,
             icon = { Icon(icon, null) },
             label = { Text(label, fontSize = 10.sp) },
-            colors = NavigationBarItemDefaults.colors(selectedIconColor = RefBlue, selectedTextColor = RefBlue, indicatorColor = Color(0xFFEAF3FF), unselectedIconColor = RefMuted, unselectedTextColor = RefMuted)
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = RefBlue,
+                selectedTextColor = RefBlue,
+                indicatorColor = Color(0xFFEAF3FF),
+                unselectedIconColor = RefMuted,
+                unselectedTextColor = RefMuted
+            )
         )
     }
 
     @Composable
     private fun Home(pad: PaddingValues, income: Double, expenses: Double, contribution: Double, debt: Double, transactions: List<FinanceTransaction>, add: () -> Unit) {
         LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 25.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
-            item { Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("wowstudio26", color = RefText, fontSize = 17.sp, fontWeight = FontWeight.Bold); Text("Premium") } } }
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("wowstudio26", color = RefText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Text("Welcome back", color = RefMuted, fontSize = 11.sp)
+                    }
+                    Icon(Icons.Default.Settings, null, Modifier.size(24.dp), tint = RefMuted)
+                }
+            }
             item { PremiumCard() }
             item { BalanceCard(income, expenses, contribution, add) }
             item { SectionTitle("QUICK ACTIONS") }
-            item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) { QuickCard("AI Coach", "Get a smart overview", RefPurple, Icons.Default.AutoAwesome, Modifier.weight(1f)) } }
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    QuickCard("AI Coach", "Get a smart overview", RefPurple, Icons.Default.AutoAwesome, Modifier.weight(1f))
+                    QuickCard("Insights", "Financial analysis", RefGreen, Icons.Default.TrendingUp, Modifier.weight(1f))
+                }
+            }
             item { FeatureCard("Family & Group Expenses", "Split bills, track trips and settle up", Icons.Default.Groups, RefBlue) }
             item { FeatureCard("Business Tracker", "Track business income and expenses", Icons.Default.BusinessCenter, RefGreen) }
             item { FeatureCard("Office Trips", "Trip expenses, advances & reports", Icons.Default.FlightTakeoff, RefBlue) }
@@ -118,46 +137,172 @@ class MainActivityReference : ComponentActivity() {
 
     @Composable
     private fun PremiumCard() {
-        Card(colors = CardDefaults.cardColors(Color(0xFFEAF4FF)), shape = RoundedCornerShape(18.dp)) { Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) { Text("Premium") } }
+        Card(colors = CardDefaults.cardColors(Color(0xFFEAF4FF)), shape = RoundedCornerShape(18.dp)) {
+            Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Get Premium", color = RefBlue, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Unlock all features", color = RefMuted, fontSize = 10.sp)
+                }
+                Icon(Icons.Default.ChevronRight, null, tint = RefBlue)
+            }
+        }
     }
 
     @Composable
     private fun BalanceCard(income: Double, expenses: Double, contribution: Double, add: () -> Unit) {
-        Card(colors = CardDefaults.cardColors(RefCard), shape = RoundedCornerShape(22.dp)) { Column(Modifier.padding(18.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("Balance", color = RefMuted, fontSize = 11.sp); Text(money(income - expenses), color = RefBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold) } } } }
+        Card(colors = CardDefaults.cardColors(RefCard), shape = RoundedCornerShape(22.dp)) {
+            Column(Modifier.padding(18.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Total Balance", color = RefMuted, fontSize = 11.sp)
+                        Text(money(income - expenses), color = RefText, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Button(onClick = add, modifier = Modifier.height(40.dp)) {
+                        Text("Add", fontSize = 12.sp)
+                    }
+                }
+                Spacer(Modifier.height(15.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Metric("Income", income, RefGreen)
+                    Metric("Expenses", expenses, RefRed)
+                    Metric("Contribution", contribution, RefPurple)
+                }
+            }
+        }
     }
 
     @Composable
-    private fun Metric(label: String, value: Double, color: Color) { Column { Text(label, color = RefMuted, fontSize = 9.sp); Text(money(value), color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }
+    private fun Metric(label: String, value: Double, color: Color) {
+        Column {
+            Text(label, color = RefMuted, fontSize = 9.sp)
+            Text(money(value), color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+    }
 
     @Composable
-    private fun SectionTitle(text: String) { Text(text, color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp) }
+    private fun SectionTitle(text: String) {
+        Text(text, color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+    }
 
     @Composable
-    private fun QuickCard(title: String, sub: String, color: Color, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier) { Card(modifier, colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Column(Modifier.padding(15.dp)) { Icon(icon, null, tint = color); Text(title, color = RefText, fontSize = 13.sp, fontWeight = FontWeight.Bold); Text(sub, color = RefMuted, fontSize = 10.sp) } } }
+    private fun QuickCard(title: String, sub: String, color: Color, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier) {
+        Card(modifier, colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(15.dp)) {
+            Column(Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(icon, null, Modifier.size(28.dp), tint = color)
+                Spacer(Modifier.height(8.dp))
+                Text(title, color = RefText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(sub, color = RefMuted, fontSize = 8.sp)
+            }
+        }
+    }
 
     @Composable
-    private fun FeatureCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color) { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) { Icon(icon, null, tint = color, modifier = Modifier.size(32.dp)); Column(Modifier.weight(1f).padding(start = 12.dp)) { Text(title, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold); Text(sub, color = RefMuted, fontSize = 10.sp) } Icon(Icons.Default.ArrowForward, null, tint = RefMuted, modifier = Modifier.size(20.dp)) } } }
+    private fun FeatureCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color) {
+        Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) {
+            Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, null, Modifier.size(32.dp), tint = color)
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    Text(title, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(sub, color = RefMuted, fontSize = 10.sp)
+                }
+                Icon(Icons.Default.ChevronRight, null, tint = RefMuted)
+            }
+        }
+    }
 
     @Composable
-    private fun ReferenceTransaction(t: FinanceTransaction) { Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(40.dp).background(RefBlue.copy(0.1f), RoundedCornerShape(10.dp))) { Icon(Icons.Default.ShoppingCart, null, tint = RefBlue, modifier = Modifier.align(Alignment.Center).size(20.dp)) } Column(Modifier.weight(1f).padding(horizontal = 12.dp)) { Text(t.description, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold); Text(t.category, color = RefMuted, fontSize = 10.sp) } Text(money(t.amount), color = RefRed, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }
+    private fun ReferenceTransaction(t: FinanceTransaction) {
+        Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(40.dp).background(Color(0xFFEAF3FF), RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                Text(t.category.take(1), color = RefBlue, fontWeight = FontWeight.Bold)
+            }
+            Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                Text(t.category, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(t.description, color = RefMuted, fontSize = 10.sp)
+            }
+            Text(money(t.amount), color = if (t.type == TransactionType.INCOME) RefGreen else RefRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+    }
 
     @Composable
-    private fun EmptyJourney() { Column(Modifier.fillMaxWidth().padding(vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.RocketLaunch, null, tint = RefMuted, modifier = Modifier.size(48.dp)); Text("No transactions yet", color = RefMuted, fontSize = 14.sp) } }
+    private fun EmptyJourney() {
+        Column(Modifier.fillMaxWidth().padding(vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Default.RocketLaunch, null, tint = RefMuted, modifier = Modifier.size(48.dp))
+            Spacer(Modifier.height(12.dp))
+            Text("No transactions yet", color = RefText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("Start by adding your first expense", color = RefMuted, fontSize = 11.sp)
+        }
+    }
 
     @Composable
-    private fun History(pad: PaddingValues, list: List<FinanceTransaction>, delete: (Long) -> Unit) { LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp)) { items(list, key = { it.id }) { item { Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text(item.description, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold); Text(item.category, color = RefMuted, fontSize = 10.sp) } Text(money(item.amount), color = RefRed, fontSize = 12.sp, fontWeight = FontWeight.Bold); IconButton({ delete(item.id) }) { Icon(Icons.Default.Delete, null, tint = RefRed) } } } } } }
+    private fun History(pad: PaddingValues, list: List<FinanceTransaction>, delete: (Long) -> Unit) {
+        LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp)) {
+            item { SectionTitle("TRANSACTION HISTORY") }
+            items(list, key = { it.id }) { transaction ->
+                Row(Modifier.fillMaxWidth().clickable { delete(transaction.id) }.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(transaction.category, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(transaction.description, color = RefMuted, fontSize = 10.sp)
+                    }
+                    Text(money(transaction.amount), color = RefRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+                Divider(color = RefLine)
+            }
+        }
+    }
 
     @Composable
-    private fun Stats(pad: PaddingValues, income: Double, expenses: Double, contribution: Double, debt: Double) { LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { item { StatBlock("Income", income, RefGreen) } item { StatBlock("Expenses", expenses, RefRed) } item { StatBlock("Contribution", contribution, RefPurple) } item { StatBlock("Debt", debt, RefRed) } } }
+    private fun Stats(pad: PaddingValues, income: Double, expenses: Double, contribution: Double, debt: Double) {
+        LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            item { SectionTitle("FINANCIAL OVERVIEW") }
+            item { StatBlock("Total Income", income, RefGreen) }
+            item { StatBlock("Total Expenses", expenses, RefRed) }
+            item { StatBlock("Total Contribution", contribution, RefPurple) }
+            item { StatBlock("Total Debt", debt, RefRed) }
+        }
+    }
 
     @Composable
-    private fun StatBlock(label: String, value: Double, color: Color) { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Column(Modifier.fillMaxWidth().padding(20.dp)) { Text(label, color = RefMuted, fontSize = 11.sp); Text(money(value), color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold) } } }
+    private fun StatBlock(label: String, value: Double, color: Color) {
+        Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) {
+            Column(Modifier.fillMaxWidth().padding(15.dp)) {
+                Text(label, color = RefMuted, fontSize = 11.sp)
+                Spacer(Modifier.height(8.dp))
+                Text(money(value), color = color, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
 
     @Composable
-    private fun More(pad: PaddingValues, categories: List<String>, loans: List<Loan>, addCategory: (String) -> Unit) { var name by remember { mutableStateOf("") }; LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { item { Text("Categories", color = RefText, fontSize = 16.sp, fontWeight = FontWeight.Bold) } items(categories, key = { it }) { SettingCard(it, "Category", Icons.Default.Label) } item { Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) { TextField(name, { name = it }, modifier = Modifier.weight(1f), placeholder = { Text("Add category") }); Button({ addCategory(name); name = "" }) { Text("Add") } } } } }
+    private fun More(pad: PaddingValues, categories: List<String>, loans: List<Loan>, addCategory: (String) -> Unit) {
+        var name by remember { mutableStateOf("") }
+        LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            item { SectionTitle("CATEGORIES") }
+            items(categories) { cat -> SettingCard(cat, "Manage category", Icons.Default.Tag) }
+            item { SectionTitle("SETTINGS") }
+            item { SettingCard("Manage Profile", "Edit your details", Icons.Default.Person) }
+            item { SettingCard("Notifications", "Alerts and reminders", Icons.Default.Notifications, toggle = true) }
+            item { SettingCard("About", "App information", Icons.Default.Info) }
+        }
+    }
 
     @Composable
-    private fun SettingCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, toggle: Boolean = false) { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) { Icon(icon, null, tint = RefBlue, modifier = Modifier.size(24.dp)); Column(Modifier.weight(1f).padding(horizontal = 12.dp)) { Text(title, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold); Text(sub, color = RefMuted, fontSize = 10.sp) } } } }
+    private fun SettingCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, toggle: Boolean = false) {
+        Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(15.dp)) {
+            Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, null, Modifier.size(24.dp), tint = RefBlue)
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    Text(title, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(sub, color = RefMuted, fontSize = 10.sp)
+                }
+                if (toggle) {
+                    Switch(checked = false, onCheckedChange = {})
+                } else {
+                    Icon(Icons.Default.ChevronRight, null, tint = RefMuted)
+                }
+            }
+        }
+    }
 
     @Composable
     fun AddExpense(pad: PaddingValues, categories: List<String>, save: (FinanceTransaction) -> Unit) {
