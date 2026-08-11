@@ -45,7 +45,7 @@ class MainActivityReference : ComponentActivity() {
 
     @Composable
     private fun ReferenceExpenseApp() {
-        val repo = remember { FinanceRepository(this@MainActivityReference) }
+        val repo: FinanceRepository = remember { FinanceRepository(this@MainActivityReference) }
         var tab by rememberSaveable { mutableIntStateOf(0) }
         var refresh by remember { mutableIntStateOf(0) }
         var showAdd by remember { mutableStateOf(false) }
@@ -101,11 +101,11 @@ class MainActivityReference : ComponentActivity() {
     @Composable
     private fun Home(pad: PaddingValues, income: Double, expenses: Double, contribution: Double, debt: Double, transactions: List<FinanceTransaction>, add: () -> Unit) {
         LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 25.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
-            item { Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("wowstudio26", color = RefText, fontSize = 17.sp, fontWeight = FontWeight.Bold); Text("● Synced · tracking today", color = RefGreen, fontSize = 10.sp) }; Icon(Icons.Default.NotificationsNone, null, tint = RefMuted) } }
+            item { Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("wowstudio26", color = RefText, fontSize = 17.sp, fontWeight = FontWeight.Bold); Text("Premium") } } }
             item { PremiumCard() }
             item { BalanceCard(income, expenses, contribution, add) }
             item { SectionTitle("QUICK ACTIONS") }
-            item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) { QuickCard("AI Coach", "Get a smart overview", RefPurple, Icons.Default.AutoAwesome, Modifier.weight(1f)); QuickCard("Smart Insights", "See spending trends", RefGreen, Icons.Default.Insights, Modifier.weight(1f)); QuickCard("Forecast", "Plan ahead", RefBlue, Icons.Default.ShowChart, Modifier.weight(1f)) } }
+            item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) { QuickCard("AI Coach", "Get a smart overview", RefPurple, Icons.Default.AutoAwesome, Modifier.weight(1f)) } }
             item { FeatureCard("Family & Group Expenses", "Split bills, track trips and settle up", Icons.Default.Groups, RefBlue) }
             item { FeatureCard("Business Tracker", "Track business income and expenses", Icons.Default.BusinessCenter, RefGreen) }
             item { FeatureCard("Office Trips", "Trip expenses, advances & reports", Icons.Default.FlightTakeoff, RefBlue) }
@@ -116,35 +116,175 @@ class MainActivityReference : ComponentActivity() {
         }
     }
 
-    @Composable private fun PremiumCard() {
-        Card(colors = CardDefaults.cardColors(Color(0xFFEAF4FF)), shape = RoundedCornerShape(18.dp)) { Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(42.dp).background(Color(0xFFD9ECFF), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { Icon(Icons.Default.WorkspacePremium, null, tint = RefBlue) }; Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text("Upgrade to Premium", color = RefText, fontWeight = FontWeight.Bold); Text("50 free titles this month · +15 per short ad", color = RefMuted, fontSize = 9.sp) }; Text("Upgrade", color = RefBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold) } }
+    @Composable
+    private fun PremiumCard() {
+        Card(colors = CardDefaults.cardColors(Color(0xFFEAF4FF)), shape = RoundedCornerShape(18.dp)) { Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) { Text("Premium") } }
     }
 
-    @Composable private fun BalanceCard(income: Double, expenses: Double, contribution: Double, add: () -> Unit) {
-        Card(colors = CardDefaults.cardColors(RefCard), shape = RoundedCornerShape(22.dp)) { Column(Modifier.padding(18.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("AUGUST 2026", color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("₹${formatCompact(income - expenses)}", color = RefText, fontSize = 28.sp, fontWeight = FontWeight.Bold); Text("Available balance", color = RefMuted, fontSize = 10.sp) }; Text("+ add income", color = RefGreen, fontSize = 10.sp) }; Spacer(Modifier.height(13.dp)); Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Metric("Income", income, RefGreen); Metric("Expenses", expenses, RefRed); Metric("Contribution", contribution, RefPurple) }; Spacer(Modifier.height(12.dp)); Button(onClick = add, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(RefBlue), shape = RoundedCornerShape(14.dp)) { Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(5.dp)); Text("Add expense") } } }
+    @Composable
+    private fun BalanceCard(income: Double, expenses: Double, contribution: Double, add: () -> Unit) {
+        Card(colors = CardDefaults.cardColors(RefCard), shape = RoundedCornerShape(22.dp)) { Column(Modifier.padding(18.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("Balance", color = RefMuted, fontSize = 11.sp); Text(money(income - expenses), color = RefBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold) } } } }
+    }
 
-    @Composable private fun Metric(label: String, value: Double, color: Color) { Column { Text(label, color = RefMuted, fontSize = 9.sp); Text(money(value), color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }
-    @Composable private fun SectionTitle(text: String) { Text(text, color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp) }
+    @Composable
+    private fun Metric(label: String, value: Double, color: Color) { Column { Text(label, color = RefMuted, fontSize = 9.sp); Text(money(value), color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }
 
-    @Composable private fun QuickCard(title: String, sub: String, color: Color, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier) { Card(modifier, colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(17.dp)) { Column(Modifier.padding(11.dp)) { Icon(icon, null, tint = color, modifier = Modifier.size(20.dp)); Spacer(Modifier.height(7.dp)); Text(title, color = RefText, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text(sub, color = RefMuted, fontSize = 8.sp) } } }
-    @Composable private fun FeatureCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color) { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(17.dp)) { Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(40.dp).background(Color(0xFFEAF3FF), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = color, modifier = Modifier.size(20.dp)) }; Spacer(Modifier.width(11.dp)); Column(Modifier.weight(1f)) { Text(title, color = RefText, fontWeight = FontWeight.Bold, fontSize = 12.sp); Text(sub, color = RefMuted, fontSize = 9.sp) }; Icon(Icons.Default.ChevronRight, null, tint = RefMuted) } } }
+    @Composable
+    private fun SectionTitle(text: String) { Text(text, color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp) }
 
-    @Composable private fun ReferenceTransaction(t: FinanceTransaction) { Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(38.dp).background(Color(0xFFF0F3F8), RoundedCornerShape(11.dp)), contentAlignment = Alignment.Center) { Icon(if (t.type == TransactionType.EXPENSE) Icons.Default.ReceiptLong else Icons.Default.AccountBalanceWallet, null, tint = RefBlue, modifier = Modifier.size(19.dp)) }; Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text(t.description.ifBlank { t.category }, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold); Text("${t.category} · ${t.owner}", color = RefMuted, fontSize = 9.sp) }; Text((if (t.type == TransactionType.EXPENSE) "−" else "+") + money(t.amount), color = if (t.type == TransactionType.EXPENSE) RefRed else RefGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold) } }
+    @Composable
+    private fun QuickCard(title: String, sub: String, color: Color, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier) { Card(modifier, colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Column(Modifier.padding(15.dp)) { Icon(icon, null, tint = color); Text(title, color = RefText, fontSize = 13.sp, fontWeight = FontWeight.Bold); Text(sub, color = RefMuted, fontSize = 10.sp) } } }
 
-    @Composable private fun EmptyJourney() { Column(Modifier.fillMaxWidth().padding(vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.RocketLaunch, null, tint = RefBlue, modifier = Modifier.size(34.dp)); Spacer(Modifier.height(8.dp)); Text("Start your journey!", color = RefText, fontSize = 15.sp, fontWeight = FontWeight.Bold); Text("Add your first expense to start tracking.", color = RefMuted, fontSize = 9.sp) } }
+    @Composable
+    private fun FeatureCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color) { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) { Icon(icon, null, tint = color, modifier = Modifier.size(32.dp)); Column(Modifier.weight(1f).padding(start = 12.dp)) { Text(title, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold); Text(sub, color = RefMuted, fontSize = 10.sp) } Icon(Icons.Default.ArrowForward, null, tint = RefMuted, modifier = Modifier.size(20.dp)) } } }
 
-    @Composable private fun History(pad: PaddingValues, list: List<FinanceTransaction>, delete: (Long) -> Unit) { LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { item { Text("Transactions", color = RefText, fontSize = 28.sp, fontWeight = FontWeight.Bold); Text("Your complete spending history", color = RefMuted, fontSize = 11.sp); Spacer(Modifier.height(8.dp)) }; items(list, key = { it.id }) { t -> Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(15.dp)) { Row(Modifier.fillMaxWidth().padding(13.dp), verticalAlignment = Alignment.CenterVertically) { ReferenceTransaction(t); IconButton({ delete(t.id) }) { Icon(Icons.Default.DeleteOutline, null, tint = RefRed) } } } } } }
+    @Composable
+    private fun ReferenceTransaction(t: FinanceTransaction) { Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(40.dp).background(RefBlue.copy(0.1f), RoundedCornerShape(10.dp))) { Icon(Icons.Default.ShoppingCart, null, tint = RefBlue, modifier = Modifier.align(Alignment.Center).size(20.dp)) } Column(Modifier.weight(1f).padding(horizontal = 12.dp)) { Text(t.description, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold); Text(t.category, color = RefMuted, fontSize = 10.sp) } Text(money(t.amount), color = RefRed, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }
 
-    @Composable private fun Stats(pad: PaddingValues, income: Double, expenses: Double, contribution: Double, debt: Double) { LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) { item { Text("Statistics", color = RefText, fontSize = 28.sp, fontWeight = FontWeight.Bold); Text("A clear view of your money", color = RefMuted, fontSize = 11.sp) }; item { StatBlock("Income", income, RefGreen) }; item { StatBlock("Expenses", expenses, RefRed) }; item { StatBlock("Contributions", contribution, RefPurple) }; item { StatBlock("Debt", debt, RefBlue) } } }
-    @Composable private fun StatBlock(label: String, value: Double, color: Color) { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Column(Modifier.padding(17.dp)) { Row { Text(label, color = RefText, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f)); Text(money(value), color = color, fontWeight = FontWeight.Bold) }; Spacer(Modifier.height(10.dp)); LinearProgressIndicator(progress = { if (value == 0.0) 0f else .65f }, modifier = Modifier.fillMaxWidth(), color = color, trackColor = RefLine) } } }
+    @Composable
+    private fun EmptyJourney() { Column(Modifier.fillMaxWidth().padding(vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.RocketLaunch, null, tint = RefMuted, modifier = Modifier.size(48.dp)); Text("No transactions yet", color = RefMuted, fontSize = 14.sp) } }
 
-    @Composable private fun More(pad: PaddingValues, categories: List<String>, loans: List<Loan>, addCategory: (String) -> Unit) { var name by remember { mutableStateOf("") }; LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) { item { Text("More", color = RefText, fontSize = 28.sp, fontWeight = FontWeight.Bold); Text("Preferences, tools and account", color = RefMuted, fontSize = 11.sp) }; item { SettingCard("Profile & Account", "wowstudio26", Icons.Default.Person) }; item { SettingCard("Unlock with Biometrics", "Use Face ID / fingerprint for app lock", Icons.Default.Fingerprint, true) }; item { SettingCard("Due Dates on Home", "Show due-date cards on Home", Icons.Default.Event) }; item { SettingCard("Budget Alerts", "Monthly, category, and daily budget nudges", Icons.Default.Notifications) }; item { SettingCard("Backed up", "Synced with cloud", Icons.Default.CloudDone) }; item { SettingCard("Export JSON (backup)", "Full backup of all expenses", Icons.Default.DataObject) }; item { SettingCard("New Savings Goal", "Plan for vacation, gadgets, emergencies", Icons.Default.Savings) }; item { Text("CATEGORIES", color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp) }; item { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Column(Modifier.padding(15.dp)) { Text("${categories.size} categories", color = RefText, fontWeight = FontWeight.Bold); Text("Budgets, icons & visibility", color = RefMuted, fontSize = 9.sp); Spacer(Modifier.height(8.dp)); Row(verticalAlignment = Alignment.CenterVertically) { OutlinedTextField(name, { name = it }, placeholder = { Text("New category", fontSize = 10.sp) }, singleLine = true, modifier = Modifier.weight(1f)); Spacer(Modifier.width(7.dp)); Button(enabled = name.trim().isNotEmpty(), onClick = { addCategory(name.trim()); name = "" }) { Text("+ New") } } } } }; item { SettingCard("Loans & Debt", "${loans.size} loans · ${money(loans.sumOf { it.remainingAmount })} remaining", Icons.Default.AccountBalance) }; item { Text("ABOUT", color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp); Text("What's New · rate & share · support · legal & version", color = RefMuted, fontSize = 10.sp) } } }
+    @Composable
+    private fun History(pad: PaddingValues, list: List<FinanceTransaction>, delete: (Long) -> Unit) { LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp)) { items(list, key = { it.id }) { item { Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text(item.description, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold); Text(item.category, color = RefMuted, fontSize = 10.sp) } Text(money(item.amount), color = RefRed, fontSize = 12.sp, fontWeight = FontWeight.Bold); IconButton({ delete(item.id) }) { Icon(Icons.Default.Delete, null, tint = RefRed) } } } } } }
 
-    @Composable private fun SettingCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, toggle: Boolean = false) { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(17.dp)) { Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(40.dp).background(Color(0xFFEAF3FF), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = RefBlue, modifier = Modifier.size(20.dp)) }; Spacer(Modifier.width(11.dp)); Column(Modifier.weight(1f)) { Text(title, color = RefText, fontWeight = FontWeight.Bold, fontSize = 12.sp); Text(sub, color = RefMuted, fontSize = 9.sp) }; if (toggle) Switch(checked = false, onCheckedChange = {}) else Icon(Icons.Default.ChevronRight, null, tint = RefMuted) } } }
+    @Composable
+    private fun Stats(pad: PaddingValues, income: Double, expenses: Double, contribution: Double, debt: Double) { LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { item { StatBlock("Income", income, RefGreen) } item { StatBlock("Expenses", expenses, RefRed) } item { StatBlock("Contribution", contribution, RefPurple) } item { StatBlock("Debt", debt, RefRed) } } }
 
-    @Composable private fun AddExpense(pad: PaddingValues, categories: List<String>, save: (FinanceTransaction) -> Unit) { var amount by rememberSaveable { mutableStateOf("") }; var desc by rememberSaveable { mutableStateOf("") }; var category by rememberSaveable { mutableStateOf(categories.firstOrNull() ?: "Other") }; LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp, 18.dp, 20.dp, 25.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) { item { Text("New Expense", color = RefText, fontSize = 28.sp, fontWeight = FontWeight.Bold) }; item { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(20.dp)) { Column(Modifier.padding(17.dp)) { Text("AMOUNT", color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("₹${if (amount.isBlank()) "0" else amount}", color = RefBlue, fontSize = 34.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth()); OutlinedTextField(amount, { amount = it.filter { c -> c.isDigit() || c == '.' } }, placeholder = { Text("Amount") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.fillMaxWidth()) } } }; item { OutlinedTextField(desc, { desc = it }, label = { Text("DESCRIPTION") }, placeholder = { Text("e.g. Swiggy dinner") }, singleLine = true, modifier = Modifier.fillMaxWidth()) }; item { Text("CATEGORY", color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold); Column(verticalArrangement = Arrangement.spacedBy(6.dp)) { categories.chunked(3).forEach { row -> Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { row.forEach { c -> FilterChip(category == c, { category = c }, label = { Text(c, fontSize = 9.sp) }) } } } } }; item { Button(enabled = amount.toDoubleOrNull()?.let { it > 0 } == true, onClick = { save(FinanceTransaction(0, TransactionType.EXPENSE, "Household", amount.toDouble(), category, desc, System.currentTimeMillis(), System.currentTimeMillis(), false)) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(RefBlue), shape = RoundedCornerShape(16.dp)) { Text("Add Expense") } } } }
+    @Composable
+    private fun StatBlock(label: String, value: Double, color: Color) { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Column(Modifier.fillMaxWidth().padding(20.dp)) { Text(label, color = RefMuted, fontSize = 11.sp); Text(money(value), color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold) } } }
 
-    @Composable private fun AddExpenseDialog(categories: List<String>, dismiss: () -> Unit, save: (FinanceTransaction) -> Unit) { var amount by remember { mutableStateOf("") }; var desc by remember { mutableStateOf("") }; AlertDialog(onDismissRequest = dismiss, title = { Text("New Expense") }, text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedTextField(amount, { amount = it }, label = { Text("Amount") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)); OutlinedTextField(desc, { desc = it }, label = { Text("Description") }) } }, confirmButton = { TextButton(enabled = amount.toDoubleOrNull()?.let { it > 0 } == true, onClick = { save(FinanceTransaction(0, TransactionType.EXPENSE, "Household", amount.toDouble(), categories.firstOrNull() ?: "Other", desc, System.currentTimeMillis(), System.currentTimeMillis(), false)) }) { Text("SAVE") } }, dismissButton = { TextButton(onClick = dismiss) { Text("CANCEL") } }) }
+    @Composable
+    private fun More(pad: PaddingValues, categories: List<String>, loans: List<Loan>, addCategory: (String) -> Unit) { var name by remember { mutableStateOf("") }; LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { item { Text("Categories", color = RefText, fontSize = 16.sp, fontWeight = FontWeight.Bold) } items(categories, key = { it }) { SettingCard(it, "Category", Icons.Default.Label) } item { Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) { TextField(name, { name = it }, modifier = Modifier.weight(1f), placeholder = { Text("Add category") }); Button({ addCategory(name); name = "" }) { Text("Add") } } } } }
+
+    @Composable
+    private fun SettingCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, toggle: Boolean = false) { Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) { Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) { Icon(icon, null, tint = RefBlue, modifier = Modifier.size(24.dp)); Column(Modifier.weight(1f).padding(horizontal = 12.dp)) { Text(title, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold); Text(sub, color = RefMuted, fontSize = 10.sp) } } } }
+
+    @Composable
+    fun AddExpense(pad: PaddingValues, categories: List<String>, save: (FinanceTransaction) -> Unit) {
+        var amount by rememberSaveable { mutableStateOf("") }
+        var desc by rememberSaveable { mutableStateOf("") }
+        var category by rememberSaveable { mutableStateOf(if (categories.isNotEmpty()) categories[0] else "") }
+        var type by rememberSaveable { mutableStateOf(TransactionType.EXPENSE) }
+
+        LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            item {
+                TextField(
+                    amount,
+                    { amount = it },
+                    label = { Text("Amount") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                TextField(
+                    desc,
+                    { desc = it },
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                if (categories.isNotEmpty()) {
+                    var expanded by remember { mutableStateOf(false) }
+                    ExposedDropdownMenuBox(expanded, { expanded = !expanded }) {
+                        TextField(
+                            category,
+                            {},
+                            label = { Text("Category") },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            readOnly = true
+                        )
+                        ExposedDropdownMenu(expanded, { expanded = false }) {
+                            categories.forEach { cat ->
+                                DropdownMenuItem(
+                                    text = { Text(cat) },
+                                    onClick = { category = cat; expanded = false }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            item {
+                Button(
+                    {
+                        if (amount.isNotBlank() && desc.isNotBlank()) {
+                            save(FinanceTransaction(0, type, 1, amount.toDoubleOrNull() ?: 0.0, category, desc, System.currentTimeMillis()))
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Save")
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun AddExpenseDialog(categories: List<String>, dismiss: () -> Unit, save: (FinanceTransaction) -> Unit) {
+        var amount by remember { mutableStateOf("") }
+        var desc by remember { mutableStateOf("") }
+        var category by remember { mutableStateOf(if (categories.isNotEmpty()) categories[0] else "") }
+        var type by remember { mutableStateOf(TransactionType.EXPENSE) }
+
+        AlertDialog(
+            onDismissRequest = dismiss,
+            title = { Text("Add Expense") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextField(
+                        amount,
+                        { amount = it },
+                        label = { Text("Amount") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    TextField(
+                        desc,
+                        { desc = it },
+                        label = { Text("Description") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (categories.isNotEmpty()) {
+                        var expanded by remember { mutableStateOf(false) }
+                        ExposedDropdownMenuBox(expanded, { expanded = !expanded }) {
+                            TextField(
+                                category,
+                                {},
+                                label = { Text("Category") },
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                readOnly = true
+                            )
+                            ExposedDropdownMenu(expanded, { expanded = false }) {
+                                categories.forEach { cat ->
+                                    DropdownMenuItem(
+                                        text = { Text(cat) },
+                                        onClick = { category = cat; expanded = false }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button({
+                    if (amount.isNotBlank() && desc.isNotBlank()) {
+                        save(FinanceTransaction(0, type, 1, amount.toDoubleOrNull() ?: 0.0, category, desc, System.currentTimeMillis()))
+                        dismiss()
+                    }
+                }) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                Button(dismiss) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     private fun money(value: Double): String = NumberFormat.getCurrencyInstance(Locale("en", "IN")).format(value).replace("₹", "₹")
     private fun formatCompact(value: Double): String = NumberFormat.getNumberInstance(Locale("en", "IN")).format(value)
