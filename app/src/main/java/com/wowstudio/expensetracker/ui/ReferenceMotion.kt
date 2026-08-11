@@ -10,7 +10,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -45,7 +44,7 @@ fun <T> ReferenceAnimatedContent(
                     )) using SizeTransform(clip = false)
         },
         label = "reference_screen_transition",
-        content = content
+        content = { state -> content(state) }
     )
 }
 
