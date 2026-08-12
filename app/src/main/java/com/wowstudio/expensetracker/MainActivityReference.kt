@@ -106,32 +106,52 @@ class MainActivityReference : ComponentActivity() {
 
     @Composable
     private fun Home(pad: PaddingValues, income: Double, expenses: Double, contribution: Double, debt: Double, transactions: List<FinanceTransaction>, add: () -> Unit) {
-        LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 25.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("wowstudio26", color = RefText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                        Text("Welcome back", color = RefMuted, fontSize = 11.sp)
-                    }
-                    Icon(Icons.Default.Settings, null, Modifier.size(24.dp), tint = RefMuted)
-                }
-            }
+        LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(18.dp, 12.dp, 18.dp, 30.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            item { AccountCard() }
             item { PremiumCard() }
             item { BalanceCard(income, expenses, contribution, add) }
             item { SectionTitle("QUICK ACTIONS") }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    QuickCard("AI Coach", "Get a smart overview", RefPurple, Icons.Default.AutoAwesome, Modifier.weight(1f))
-                    QuickCard("Insights", "Financial analysis", RefGreen, Icons.Default.TrendingUp, Modifier.weight(1f))
+                    QuickCard("AI Coach", "Money coaching", RefPurple, Icons.Default.AutoAwesome, Modifier.weight(1f))
+                    QuickCard("Smart Insights", "Spend patterns", RefRed, Icons.Default.AutoGraph, Modifier.weight(1f))
+                    QuickCard("Forecast", "Monthly forecast", RefGreen, Icons.Default.TrendingUp, Modifier.weight(1f))
                 }
             }
-            item { FeatureCard("Family & Group Expenses", "Split bills, track trips and settle up", Icons.Default.Groups, RefBlue) }
-            item { FeatureCard("Business Tracker", "Track business income and expenses", Icons.Default.BusinessCenter, RefGreen) }
-            item { FeatureCard("Office Trips", "Trip expenses, advances & reports", Icons.Default.FlightTakeoff, RefBlue) }
-            item { SectionTitle("RECENT ACTIVITY") }
+            item { SectionTitle("FAMILY & GROUPS") }
+            item { FeatureCard("Family & Group Expenses", "Split bills, track trips & settle up", Icons.Default.Groups, RefBlue, Color(0xFF16B887)) }
+            item { SectionTitle("BUSINESS & TRIPS") }
+            item { FeatureCard("Business Tracker", "Track business income and expenses", Icons.Default.BusinessCenter, RefBlue, RefGreen) }
+            item { FeatureCard("Office Trips", "Trip expenses, advances & reports", Icons.Default.FlightTakeoff, RefGreen, Color(0xFF08A7E5)) }
+            item {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    SectionTitle("RECENT ACTIVITY", Modifier.weight(1f))
+                    Text("View Report →", color = RefBlue, fontSize = 10.sp)
+                }
+            }
             if (transactions.isEmpty()) item { EmptyJourney() }
             items(transactions.take(5), key = { it.id }) { ReferenceTransaction(it) }
             item { Text("Total debt  ${money(debt)}", color = RefMuted, fontSize = 11.sp) }
+        }
+    }
+
+    @Composable
+    private fun AccountCard() {
+        Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) {
+            Row(Modifier.fillMaxWidth().padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(46.dp).background(RefBlue, RoundedCornerShape(13.dp)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Person, null, tint = Color.White)
+                }
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    Text("wowstudio26", color = RefText, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(6.dp).background(RefGreen, androidx.compose.foundation.shape.CircleShape))
+                        Spacer(Modifier.width(5.dp))
+                        Text("Synced · tracking today", color = RefMuted, fontSize = 10.sp)
+                    }
+                }
+                Icon(Icons.Default.ChevronRight, null, tint = RefMuted)
+            }
         }
     }
 
@@ -180,8 +200,8 @@ class MainActivityReference : ComponentActivity() {
     }
 
     @Composable
-    private fun SectionTitle(text: String) {
-        Text(text, color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+    private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+        Text(text, modifier, color = RefMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
     }
 
     @Composable
@@ -197,15 +217,15 @@ class MainActivityReference : ComponentActivity() {
     }
 
     @Composable
-    private fun FeatureCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color) {
-        Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(18.dp)) {
-            Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, null, Modifier.size(32.dp), tint = color)
+    private fun FeatureCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, start: Color, end: Color = start) {
+        Card(shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(start, end))).padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(40.dp).background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = Color.White) }
                 Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                    Text(title, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(sub, color = RefMuted, fontSize = 10.sp)
+                    Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(sub, color = Color.White.copy(alpha = 0.82f), fontSize = 10.sp)
                 }
-                Icon(Icons.Default.ChevronRight, null, tint = RefMuted)
+                Icon(Icons.Default.ChevronRight, null, tint = Color.White)
             }
         }
     }
