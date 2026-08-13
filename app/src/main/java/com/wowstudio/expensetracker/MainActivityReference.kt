@@ -1,5 +1,6 @@
 package com.wowstudio.expensetracker
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.wowstudio.expensetracker.data.*
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -114,7 +116,6 @@ class MainActivityReference : ComponentActivity() {
     private fun Home(pad: PaddingValues, income: Double, expenses: Double, contribution: Double, debt: Double, transactions: List<FinanceTransaction>, add: () -> Unit) {
         LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(18.dp, 12.dp, 18.dp, 30.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item { AccountCard() }
-            item { FreePlanCard() }
             item { BalanceCard(income, expenses, contribution, add) }
             item { SectionTitle("QUICK ACTIONS") }
             item {
@@ -124,9 +125,7 @@ class MainActivityReference : ComponentActivity() {
                     QuickCard("Forecast", "Monthly forecast", RefGreen, Icons.Default.TrendingUp, Modifier.weight(1f))
                 }
             }
-            item { SectionTitle("FAMILY & GROUPS") }
             item { FeatureCard("Family & Group Expenses", "Split bills, track trips & settle up", Icons.Default.Groups, RefBlue, Color(0xFF16B887)) }
-            item { SectionTitle("BUSINESS & TRIPS") }
             item { FeatureCard("Business Tracker", "Track business income and expenses", Icons.Default.BusinessCenter, RefBlue, RefGreen) }
             item { FeatureCard("Office Trips", "Trip expenses, advances & reports", Icons.Default.FlightTakeoff, RefGreen, Color(0xFF08A7E5)) }
             item {
@@ -157,20 +156,6 @@ class MainActivityReference : ComponentActivity() {
                     }
                 }
                 Icon(Icons.Default.ChevronRight, null, tint = RefMuted)
-            }
-        }
-    }
-
-    @Composable
-    private fun FreePlanCard() {
-        Card(colors = CardDefaults.cardColors(Color(0xFFEAF4FF)), shape = RoundedCornerShape(18.dp)) {
-            Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.WorkspacePremium, null, tint = RefBlue, modifier = Modifier.size(25.dp))
-                Column(Modifier.weight(1f).padding(horizontal = 10.dp)) {
-                    Text("Free Plan · 0 of 50 free this month", color = RefText, fontSize = 11.sp)
-                    Text("Unlimited free top-ups with short ads", color = RefMuted, fontSize = 9.sp)
-                }
-                Text("Upgrade →", color = RefBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -281,7 +266,7 @@ class MainActivityReference : ComponentActivity() {
                     Text(money(transaction.amount), color = if (transaction.type == TransactionType.INCOME) RefGreen else RefRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     IconButton(onClick = { delete(transaction.id) }, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.DeleteOutline, "Delete", tint = RefMuted, modifier = Modifier.size(18.dp)) }
                 }
-                Divider(color = RefLine)
+                HorizontalDivider(color = RefLine)
             }
         }
     }
@@ -310,18 +295,33 @@ class MainActivityReference : ComponentActivity() {
 
     @Composable
     private fun More(pad: PaddingValues, categories: List<String>, loans: List<Loan>, addCategory: (String) -> Unit) {
+        var notificationsEnabled by rememberSaveable { mutableStateOf(false) }
         LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(18.dp, 12.dp, 18.dp, 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item { SectionTitle("CATEGORIES") }
             items(categories) { cat -> SettingCard(cat, "Manage category", Icons.Default.Tag) }
             item { SectionTitle("SETTINGS") }
             item { SettingCard("Manage Profile", "Edit your details", Icons.Default.Person) }
-            item { SettingCard("Notifications", "Alerts and reminders", Icons.Default.Notifications, toggle = true) }
+            item {
+                SettingCard(
+                    "Notifications",
+                    if (notificationsEnabled) "Alerts enabled" else "Alerts disabled",
+                    Icons.Default.Notifications,
+                    toggle = notificationsEnabled,
+                    onToggle = { notificationsEnabled = it }
+                )
+            }
             item { SettingCard("About", "App information", Icons.Default.Info) }
         }
     }
 
     @Composable
-    private fun SettingCard(title: String, sub: String, icon: androidx.compose.ui.graphics.vector.ImageVector, toggle: Boolean = false) {
+    private fun SettingCard(
+        title: String,
+        sub: String,
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        toggle: Boolean = false,
+        onToggle: ((Boolean) -> Unit)? = null
+    ) {
         Card(colors = CardDefaults.cardColors(Color.White), shape = RoundedCornerShape(15.dp)) {
             Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, null, Modifier.size(24.dp), tint = RefBlue)
@@ -329,8 +329,8 @@ class MainActivityReference : ComponentActivity() {
                     Text(title, color = RefText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Text(sub, color = RefMuted, fontSize = 10.sp)
                 }
-                if (toggle) {
-                    Switch(checked = false, onCheckedChange = {})
+                if (onToggle != null) {
+                    Switch(checked = toggle, onCheckedChange = onToggle)
                 } else {
                     Icon(Icons.Default.ChevronRight, null, tint = RefMuted)
                 }
@@ -346,6 +346,8 @@ class MainActivityReference : ComponentActivity() {
         var category by rememberSaveable { mutableStateOf(if (categories.isNotEmpty()) categories[0] else "") }
         var type by rememberSaveable { mutableStateOf(TransactionType.EXPENSE) }
         var owner by rememberSaveable { mutableStateOf("Mine") }
+        var selectedDate by rememberSaveable { mutableLongStateOf(System.currentTimeMillis()) }
+        val context = this@MainActivityReference
 
         LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(18.dp, 10.dp, 18.dp, 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
@@ -391,8 +393,26 @@ class MainActivityReference : ComponentActivity() {
             }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton({ }, modifier = Modifier.weight(1f)) { Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Today") }
-                    OutlinedButton({ }, modifier = Modifier.width(94.dp)) { Icon(Icons.Default.CameraAlt, null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(4.dp)); Text("Scan") }
+                    OutlinedButton({
+                        val calendar = Calendar.getInstance().apply { timeInMillis = selectedDate }
+                        DatePickerDialog(
+                            context,
+                            { _, year, month, day ->
+                                Calendar.getInstance().apply {
+                                    set(year, month, day, 12, 0, 0)
+                                    set(Calendar.MILLISECOND, 0)
+                                    selectedDate = timeInMillis
+                                }
+                            },
+                            calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH),
+                            calendar.get(Calendar.DAY_OF_MONTH)
+                        ).show()
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(selectedDate)))
+                    }
                 }
             }
             item {
@@ -411,7 +431,7 @@ class MainActivityReference : ComponentActivity() {
                     {
                         val value = amount.toDoubleOrNull() ?: 0.0
                         if (value > 0 && desc.isNotBlank()) {
-                            save(FinanceTransaction(0, type, owner, value, category, desc, System.currentTimeMillis(), System.currentTimeMillis(), false))
+                            save(FinanceTransaction(0, type, owner, value, category, desc, selectedDate, System.currentTimeMillis(), false))
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -435,37 +455,15 @@ class MainActivityReference : ComponentActivity() {
             title = { Text("Add Expense") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextField(
-                        amount,
-                        { amount = it.filter { c -> c.isDigit() || c == '.' } },
-                        label = { Text("Amount") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    TextField(
-                        desc,
-                        { desc = it },
-                        label = { Text("Description") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+                    TextField(amount, { amount = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Amount") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    TextField(desc, { desc = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     if (categories.isNotEmpty()) {
                         var expanded by remember { mutableStateOf(false) }
                         ExposedDropdownMenuBox(expanded, { expanded = !expanded }) {
-                            TextField(
-                                category,
-                                {},
-                                label = { Text("Category") },
-                                modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                readOnly = true
-                            )
+                            TextField(category, {}, label = { Text("Category") }, modifier = Modifier.fillMaxWidth().menuAnchor(), readOnly = true)
                             ExposedDropdownMenu(expanded, { expanded = false }) {
                                 categories.forEach { cat ->
-                                    DropdownMenuItem(
-                                        text = { Text(cat) },
-                                        onClick = { category = cat; expanded = false }
-                                    )
+                                    DropdownMenuItem(text = { Text(cat) }, onClick = { category = cat; expanded = false })
                                 }
                             }
                         }
@@ -479,15 +477,9 @@ class MainActivityReference : ComponentActivity() {
                         save(FinanceTransaction(0, type, "Mine", value, category, desc, System.currentTimeMillis(), System.currentTimeMillis(), false))
                         dismiss()
                     }
-                }) {
-                    Text("Save")
-                }
+                }) { Text("Save") }
             },
-            dismissButton = {
-                Button(dismiss) {
-                    Text("Cancel")
-                }
-            }
+            dismissButton = { Button(dismiss) { Text("Cancel") } }
         )
     }
 
