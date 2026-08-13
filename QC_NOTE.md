@@ -1,0 +1,1 @@
+QC scope is the current feature branch: navigation, transaction CRUD, add-expense validation/date selection, settings toggle, and APK compilation. This note is temporary and will be removed after the PR check.
